@@ -55,9 +55,15 @@ public class ReceiverFrame extends JFrame implements ReceiverController.Receiver
         contentPanel.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
         contentPanel.setBackground(new Color(248, 249, 251));
 
-        contentPanel.add(buildHeaderPanel(), BorderLayout.NORTH);
-        contentPanel.add(buildFormPanel(), BorderLayout.CENTER);
-        contentPanel.add(buildStatusPanel(), BorderLayout.SOUTH);
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        topPanel.setOpaque(false);
+        topPanel.add(buildHeaderPanel());
+        topPanel.add(Box.createVerticalStrut(16));
+        topPanel.add(buildFormPanel());
+
+        contentPanel.add(topPanel, BorderLayout.NORTH);
+        contentPanel.add(buildStatusPanel(), BorderLayout.CENTER);
 
         return contentPanel;
     }
@@ -85,11 +91,13 @@ public class ReceiverFrame extends JFrame implements ReceiverController.Receiver
     private JPanel buildFormPanel() {
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setOpaque(false);
+        formPanel.setAlignmentX(LEFT_ALIGNMENT);
 
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.insets = new Insets(6, 6, 6, 6);
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.WEST;
+        constraints.gridy = 0;
 
         encryptedFileField.setEditable(false);
         encryptedFileField.setBackground(Color.WHITE);
@@ -114,6 +122,9 @@ public class ReceiverFrame extends JFrame implements ReceiverController.Receiver
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.weightx = 0;
+        constraints.gridwidth = 1;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.WEST;
         formPanel.add(new JLabel("Secret Key"), constraints);
 
         constraints.gridx = 1;
@@ -124,9 +135,11 @@ public class ReceiverFrame extends JFrame implements ReceiverController.Receiver
         constraints.gridx = 1;
         constraints.gridy = 2;
         constraints.gridwidth = 2;
-        constraints.weightx = 0;
+        constraints.weightx = 1;
+        constraints.fill = GridBagConstraints.NONE;
         constraints.anchor = GridBagConstraints.EAST;
-        decryptButton.setPreferredSize(new Dimension(140, 38));
+        constraints.insets = new Insets(12, 6, 0, 6);
+        decryptButton.setPreferredSize(new Dimension(140, 40));
         formPanel.add(decryptButton, constraints);
 
         return formPanel;
