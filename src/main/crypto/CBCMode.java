@@ -12,7 +12,7 @@ public class CBCMode {
     }
 
     public CBCMode(AESVariant variant) {
-        this.variant = Objects.requireNonNull(variant, "AES variant must not be null.");
+        this.variant = Objects.requireNonNull(variant, "Biến thể AES không được để trống.");
         this.keySchedule = new AESKeySchedule(variant);
         this.blockCipher = new AESBlockCipher(variant);
     }
@@ -23,8 +23,8 @@ public class CBCMode {
 
     // CBC chaining is unchanged; only the AES variant is configurable.
     public byte[] encrypt(byte[] plainText, byte[] key, byte[] iv, AESVariant variant) {
-        AESVariant resolvedVariant = Objects.requireNonNull(variant, "AES variant must not be null.");
-        validateInput(plainText, "Plaintext");
+        AESVariant resolvedVariant = Objects.requireNonNull(variant, "Biến thể AES không được để trống.");
+        validateInput(plainText, "Dữ liệu rõ");
         validateKey(key, resolvedVariant);
         validateIv(iv);
 
@@ -50,8 +50,8 @@ public class CBCMode {
 
     // CBC chaining is unchanged; only the AES variant is configurable.
     public byte[] decrypt(byte[] cipherText, byte[] key, byte[] iv, AESVariant variant) {
-        AESVariant resolvedVariant = Objects.requireNonNull(variant, "AES variant must not be null.");
-        validateInput(cipherText, "Ciphertext");
+        AESVariant resolvedVariant = Objects.requireNonNull(variant, "Biến thể AES không được để trống.");
+        validateInput(cipherText, "dữ liệu mã hóa");
         validateKey(key, resolvedVariant);
         validateIv(iv);
 
@@ -73,36 +73,36 @@ public class CBCMode {
 
     private void validateInput(byte[] data, String label) {
         if (data == null) {
-            throw new IllegalArgumentException(label + " must not be null.");
+            throw new IllegalArgumentException(label + " không được để trống.");
         }
 
         if (data.length % AESConstants.BLOCK_SIZE != 0) {
             throw new IllegalArgumentException(
-                    label + " length must be a multiple of " + AESConstants.BLOCK_SIZE + " bytes."
+                    "Độ dài " + label + " phải là bội số của " + AESConstants.BLOCK_SIZE + " byte."
             );
         }
     }
 
     private void validateKey(byte[] key, AESVariant variant) {
         if (key == null) {
-            throw new IllegalArgumentException("AES key must not be null.");
+            throw new IllegalArgumentException("Khóa AES không được để trống.");
         }
 
         if (key.length != variant.getKeyLengthBytes()) {
             throw new IllegalArgumentException(
-                    "AES key must be exactly " + variant.getKeyLengthBytes() + " bytes."
+                    "Khóa AES phải có đúng " + variant.getKeyLengthBytes() + " byte."
             );
         }
     }
 
     private void validateIv(byte[] iv) {
         if (iv == null) {
-            throw new IllegalArgumentException("IV must not be null.");
+            throw new IllegalArgumentException("IV không được để trống.");
         }
 
         if (iv.length != AESConstants.BLOCK_SIZE) {
             throw new IllegalArgumentException(
-                    "IV must be exactly " + AESConstants.BLOCK_SIZE + " bytes."
+                    "IV phải có đúng " + AESConstants.BLOCK_SIZE + " byte."
             );
         }
     }

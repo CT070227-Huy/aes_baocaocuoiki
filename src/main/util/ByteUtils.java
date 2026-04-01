@@ -8,11 +8,11 @@ public final class ByteUtils {
     }
 
     public static byte[] xor(byte[] a, byte[] b) {
-        validateArray(a, "First byte array");
-        validateArray(b, "Second byte array");
+        validateArray(a, "Mảng byte thứ nhất");
+        validateArray(b, "Mảng byte thứ hai");
 
         if (a.length != b.length) {
-            throw new IllegalArgumentException("Byte arrays must have the same length.");
+            throw new IllegalArgumentException("Hai mảng byte phải có cùng độ dài.");
         }
 
         byte[] result = new byte[a.length];
@@ -28,13 +28,13 @@ public final class ByteUtils {
     }
 
     public static byte[] copyOf(byte[] source) {
-        validateArray(source, "Source byte array");
+        validateArray(source, "Mảng byte nguồn");
         return Arrays.copyOf(source, source.length);
     }
 
     private static void validateArray(byte[] source, String label) {
         if (source == null) {
-            throw new IllegalArgumentException(label + " must not be null.");
+            throw new IllegalArgumentException(label + " không được để trống.");
         }
     }
 }

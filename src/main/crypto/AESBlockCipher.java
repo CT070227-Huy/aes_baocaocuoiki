@@ -12,7 +12,7 @@ public class AESBlockCipher {
     }
 
     public AESBlockCipher(AESVariant variant) {
-        this.variant = Objects.requireNonNull(variant, "AES variant must not be null.");
+        this.variant = Objects.requireNonNull(variant, "Biến thể AES không được để trống.");
     }
 
     public byte[] encryptBlock(byte[] inputBlock, byte[] expandedKey) {
@@ -20,7 +20,7 @@ public class AESBlockCipher {
     }
 
     public byte[] encryptBlock(byte[] inputBlock, byte[] expandedKey, AESVariant variant) {
-        AESVariant resolvedVariant = Objects.requireNonNull(variant, "AES variant must not be null.");
+        AESVariant resolvedVariant = Objects.requireNonNull(variant, "Biến thể AES không được để trống.");
         validateBlock(inputBlock);
         validateExpandedKey(expandedKey, resolvedVariant);
 
@@ -48,7 +48,7 @@ public class AESBlockCipher {
     }
 
     public byte[] decryptBlock(byte[] inputBlock, byte[] expandedKey, AESVariant variant) {
-        AESVariant resolvedVariant = Objects.requireNonNull(variant, "AES variant must not be null.");
+        AESVariant resolvedVariant = Objects.requireNonNull(variant, "Biến thể AES không được để trống.");
         validateBlock(inputBlock);
         validateExpandedKey(expandedKey, resolvedVariant);
 
@@ -73,24 +73,24 @@ public class AESBlockCipher {
 
     private void validateBlock(byte[] inputBlock) {
         if (inputBlock == null) {
-            throw new IllegalArgumentException("Input block must not be null.");
+            throw new IllegalArgumentException("Block đầu vào không được để trống.");
         }
 
         if (inputBlock.length != AESConstants.BLOCK_SIZE) {
             throw new IllegalArgumentException(
-                    "Input block must be exactly " + AESConstants.BLOCK_SIZE + " bytes."
+                    "Block đầu vào phải có đúng " + AESConstants.BLOCK_SIZE + " byte."
             );
         }
     }
 
     private void validateExpandedKey(byte[] expandedKey, AESVariant variant) {
         if (expandedKey == null) {
-            throw new IllegalArgumentException("Expanded key must not be null.");
+            throw new IllegalArgumentException("Khóa mở rộng không được để trống.");
         }
 
         if (expandedKey.length != variant.getExpandedKeyLengthBytes()) {
             throw new IllegalArgumentException(
-                    "Expanded key must be exactly " + variant.getExpandedKeyLengthBytes() + " bytes."
+                    "Khóa mở rộng phải có đúng " + variant.getExpandedKeyLengthBytes() + " byte."
             );
         }
     }

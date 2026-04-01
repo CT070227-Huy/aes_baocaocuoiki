@@ -22,11 +22,11 @@ public class ReceiverController {
 
     public ReceiverController(ReceiverView view, FileDecryptService fileDecryptService) {
         if (view == null) {
-            throw new IllegalArgumentException("Receiver view must not be null.");
+            throw new IllegalArgumentException("Giao diện nhận không được để trống.");
         }
 
         if (fileDecryptService == null) {
-            throw new IllegalArgumentException("FileDecryptService must not be null.");
+            throw new IllegalArgumentException("Dịch vụ giải mã tệp không được để trống.");
         }
 
         this.view = view;
@@ -36,7 +36,7 @@ public class ReceiverController {
     public void handleChooseFile(Component parentComponent) {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Encrypted files (*.enc)", "enc"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Tệp mã hóa (*.enc)", "enc"));
 
         int selectionResult = fileChooser.showOpenDialog(parentComponent);
         if (selectionResult != JFileChooser.APPROVE_OPTION || fileChooser.getSelectedFile() == null) {
@@ -45,13 +45,13 @@ public class ReceiverController {
 
         Path selectedFile = fileChooser.getSelectedFile().toPath().toAbsolutePath().normalize();
         view.setSelectedEncryptedFile(selectedFile);
-        view.showStatus("Selected encrypted file: " + selectedFile.getFileName());
+        view.showStatus("Đã chọn tệp mã hóa: " + selectedFile.getFileName());
     }
 
     public void handleDecrypt() {
         try {
             DecryptionRequest request = buildRequestFromView();
-            view.showStatus("Decrypting file...");
+            view.showStatus("Đang giải mã tệp...");
 
             OperationResult result = fileDecryptService.decryptFile(request);
             updateView(result);
@@ -65,7 +65,7 @@ public class ReceiverController {
         ValidationUtils.validateFileExists(encryptedFile);
 
         if (!encryptedFile.getFileName().toString().toLowerCase().endsWith(".enc")) {
-            throw new IllegalArgumentException("Please select a valid .enc file.");
+            throw new IllegalArgumentException("Vui lòng chọn tệp .enc hợp lệ.");
         }
 
         AESVariant variant = view.getSelectedVariant();
@@ -74,7 +74,7 @@ public class ReceiverController {
 
         Path outputFile = view.getOutputFile();
         if (outputFile != null && outputFile.equals(encryptedFile)) {
-            throw new IllegalArgumentException("Output file must be different from the encrypted input file.");
+            throw new IllegalArgumentException("Tệp đầu ra phải khác tệp mã hóa đầu vào.");
         }
 
         return new DecryptionRequest(encryptedFile, outputFile, secretKey, variant);
@@ -82,7 +82,7 @@ public class ReceiverController {
 
     private void updateView(OperationResult result) {
         if (result == null) {
-            showValidationError("Decryption did not return a result.");
+            showValidationError("Giải mã không trả về kết quả.");
             return;
         }
 
@@ -98,14 +98,14 @@ public class ReceiverController {
 
     private String buildDisplayMessage(OperationResult result) {
         if (result.isSuccess() && result.getOutputPath() != null) {
-            return result.getMessage() + " Output: " + result.getOutputPath();
+            return result.getMessage() + " Tệp đầu ra: " + result.getOutputPath();
         }
 
         String exceptionMessage = result.getExceptionMessage();
         if (exceptionMessage != null
                 && !exceptionMessage.isBlank()
                 && !exceptionMessage.equals(result.getMessage())) {
-            return result.getMessage() + " Details: " + exceptionMessage;
+            return result.getMessage() + " Chi tiết: " + exceptionMessage;
         }
 
         return result.getMessage();

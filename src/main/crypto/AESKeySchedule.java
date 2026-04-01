@@ -13,7 +13,7 @@ public class AESKeySchedule {
     }
 
     public AESKeySchedule(AESVariant variant) {
-        this.variant = Objects.requireNonNull(variant, "AES variant must not be null.");
+        this.variant = Objects.requireNonNull(variant, "Biến thể AES không được để trống.");
     }
 
     // Backward-compatible overload that uses the instance's configured variant.
@@ -23,7 +23,7 @@ public class AESKeySchedule {
 
     // Expand the raw key into round keys for the requested AES variant.
     public byte[] expandKey(byte[] key, AESVariant variant) {
-        AESVariant resolvedVariant = Objects.requireNonNull(variant, "AES variant must not be null.");
+        AESVariant resolvedVariant = Objects.requireNonNull(variant, "Biến thể AES không được để trống.");
         validateKey(key, resolvedVariant);
 
         int nk = resolvedVariant.getNk();
@@ -52,12 +52,12 @@ public class AESKeySchedule {
 
     private void validateKey(byte[] key, AESVariant variant) {
         if (key == null) {
-            throw new IllegalArgumentException("AES key must not be null.");
+            throw new IllegalArgumentException("Khóa AES không được để trống.");
         }
 
         if (key.length != variant.getKeyLengthBytes()) {
             throw new IllegalArgumentException(
-                    "AES key must be exactly " + variant.getKeyLengthBytes() + " bytes."
+                    "Khóa AES phải có đúng " + variant.getKeyLengthBytes() + " byte."
             );
         }
     }

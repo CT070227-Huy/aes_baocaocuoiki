@@ -63,7 +63,7 @@ public final class EncryptedFileFormat {
             case 1 -> AESVariant.AES_128;
             case 2 -> AESVariant.AES_192;
             case 3 -> AESVariant.AES_256;
-            default -> throw new IllegalArgumentException("Unsupported AES variant code: " + (code & 0xFF));
+            default -> throw new IllegalArgumentException("Mã biến thể AES không được hỗ trợ: " + (code & 0xFF));
         };
     }
 }

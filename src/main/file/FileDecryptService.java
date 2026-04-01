@@ -40,45 +40,45 @@ public class FileDecryptService {
 
             writeOutputFile(outputPath, plainBytes);
 
-            return OperationResult.success("File decrypted successfully.", outputPath);
+            return OperationResult.success("Giải mã tệp thành công.", outputPath);
         } catch (InvalidFormatException exception) {
             return OperationResult.failure(
-                    "Unable to decrypt file because the .enc file format is invalid.",
+                    "Không thể giải mã vì định dạng tệp .enc không hợp lệ.",
                     exception.getMessage()
             );
         } catch (InvalidKeyException exception) {
-            return OperationResult.failure("Unable to decrypt file: " + exception.getMessage(), exception.getMessage());
+            return OperationResult.failure("Không thể giải mã tệp: " + exception.getMessage(), exception.getMessage());
         } catch (IllegalArgumentException exception) {
             return OperationResult.failure(
-                    "Unable to decrypt file. The secret key may be incorrect or the encrypted data may be corrupted.",
+                    "Không thể giải mã tệp. Khóa bí mật có thể không đúng hoặc dữ liệu đã bị hỏng.",
                     exception.getMessage()
             );
         } catch (IOException exception) {
             return OperationResult.failure(
-                    "Unable to save the decrypted file to the selected location.",
+                    "Không thể lưu tệp đã giải mã vào vị trí đã chọn.",
                     exception.getMessage()
             );
         } catch (Exception exception) {
-            return OperationResult.failure("Unexpected error while decrypting file.", exception.toString());
+            return OperationResult.failure("Có lỗi không mong muốn khi giải mã tệp.", exception.toString());
         }
     }
 
     private void validateRequest(DecryptionRequest request) {
         if (request == null) {
-            throw new IllegalArgumentException("Decryption request must not be null.");
+            throw new IllegalArgumentException("Yêu cầu giải mã không được để trống.");
         }
 
         Path encryptedFile = request.getEncryptedFile();
         if (encryptedFile == null) {
-            throw new IllegalArgumentException("Encrypted file must not be null.");
+            throw new IllegalArgumentException("Vui lòng chọn tệp mã hóa.");
         }
 
         if (!Files.exists(encryptedFile)) {
-            throw new IllegalArgumentException("Encrypted file does not exist.");
+            throw new IllegalArgumentException("Tệp mã hóa không tồn tại.");
         }
 
         if (!Files.isRegularFile(encryptedFile)) {
-            throw new IllegalArgumentException("Encrypted path must point to a file.");
+            throw new IllegalArgumentException("Đường dẫn tệp mã hóa phải trỏ tới một tệp.");
         }
     }
 
@@ -91,7 +91,7 @@ public class FileDecryptService {
         AESVariant selectedVariant = request.getVariant();
 
         if (selectedVariant != null && selectedVariant != fileVariant) {
-            throw new IllegalArgumentException("Selected algorithm does not match the encrypted file metadata.");
+            throw new IllegalArgumentException("Thuật toán đã chọn không khớp với metadata của tệp mã hóa.");
         }
 
         return fileVariant;
@@ -111,11 +111,11 @@ public class FileDecryptService {
         }
 
         if (outputPath.equals(request.getEncryptedFile())) {
-            throw new IllegalArgumentException("Output file must be different from the encrypted input file.");
+            throw new IllegalArgumentException("Tệp đầu ra phải khác tệp mã hóa đầu vào.");
         }
 
         if (Files.exists(outputPath) && Files.isDirectory(outputPath)) {
-            throw new IllegalArgumentException("Output path must point to a file, not a directory.");
+            throw new IllegalArgumentException("Đường dẫn đầu ra phải là tệp, không phải thư mục.");
         }
 
         return outputPath;
@@ -123,18 +123,18 @@ public class FileDecryptService {
 
     private String normalizeOriginalFileName(String originalFileName) throws InvalidFormatException {
         if (originalFileName == null || originalFileName.isBlank()) {
-            throw new InvalidFormatException("Encrypted file does not contain a valid original file name.");
+            throw new InvalidFormatException("Tệp mã hóa không chứa tên tệp gốc hợp lệ.");
         }
 
         try {
             Path fileNamePath = Paths.get(originalFileName).getFileName();
             if (fileNamePath == null || fileNamePath.toString().isBlank()) {
-                throw new InvalidFormatException("Encrypted file does not contain a valid original file name.");
+                throw new InvalidFormatException("Tệp mã hóa không chứa tên tệp gốc hợp lệ.");
             }
 
             return fileNamePath.toString();
         } catch (InvalidPathException exception) {
-            throw new InvalidFormatException("Original file name inside the encrypted file is invalid.", exception);
+            throw new InvalidFormatException("Tên tệp gốc trong tệp mã hóa không hợp lệ.", exception);
         }
     }
 

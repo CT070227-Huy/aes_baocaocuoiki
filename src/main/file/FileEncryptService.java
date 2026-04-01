@@ -44,39 +44,39 @@ public class FileEncryptService {
 
             fileWriter.write(outputPath, encryptedPackage);
 
-            return OperationResult.success("File encrypted successfully.", outputPath);
+            return OperationResult.success("Mã hóa tệp thành công.", outputPath);
         } catch (InvalidKeyException | IllegalArgumentException exception) {
-            return OperationResult.failure("Unable to encrypt file: " + exception.getMessage(), exception.getMessage());
+            return OperationResult.failure("Không thể mã hóa tệp: " + exception.getMessage(), exception.getMessage());
         } catch (IOException exception) {
             return OperationResult.failure(
-                    "Unable to encrypt file because the input or output file could not be accessed.",
+                    "Không thể mã hóa tệp vì không truy cập được tệp đầu vào hoặc đầu ra.",
                     exception.getMessage()
             );
         } catch (Exception exception) {
-            return OperationResult.failure("Unexpected error while encrypting file.", exception.toString());
+            return OperationResult.failure("Có lỗi không mong muốn khi mã hóa tệp.", exception.toString());
         }
     }
 
     private void validateRequest(EncryptionRequest request) {
         if (request == null) {
-            throw new IllegalArgumentException("Encryption request must not be null.");
+            throw new IllegalArgumentException("Yêu cầu mã hóa không được để trống.");
         }
 
         Path inputFile = request.getInputFile();
         if (inputFile == null) {
-            throw new IllegalArgumentException("Input file must not be null.");
+            throw new IllegalArgumentException("Vui lòng chọn tệp đầu vào.");
         }
 
         if (!Files.exists(inputFile)) {
-            throw new IllegalArgumentException("Input file does not exist.");
+            throw new IllegalArgumentException("Tệp đầu vào không tồn tại.");
         }
 
         if (!Files.isRegularFile(inputFile)) {
-            throw new IllegalArgumentException("Input path must point to a file.");
+            throw new IllegalArgumentException("Đường dẫn đầu vào phải trỏ tới một tệp.");
         }
 
         if (inputFile.getFileName() == null) {
-            throw new IllegalArgumentException("Input file name could not be determined.");
+            throw new IllegalArgumentException("Không xác định được tên tệp đầu vào.");
         }
     }
 
@@ -91,11 +91,11 @@ public class FileEncryptService {
         }
 
         if (Files.exists(outputPath) && Files.isDirectory(outputPath)) {
-            throw new IllegalArgumentException("Output path must point to a file, not a directory.");
+            throw new IllegalArgumentException("Đường dẫn đầu ra phải là tệp, không phải thư mục.");
         }
 
         if (outputPath.equals(request.getInputFile())) {
-            throw new IllegalArgumentException("Output file must be different from the input file.");
+            throw new IllegalArgumentException("Tệp đầu ra phải khác tệp đầu vào.");
         }
 
         return outputPath;

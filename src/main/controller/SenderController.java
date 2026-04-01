@@ -21,11 +21,11 @@ public class SenderController {
 
     public SenderController(SenderView view, FileEncryptService fileEncryptService) {
         if (view == null) {
-            throw new IllegalArgumentException("Sender view must not be null.");
+            throw new IllegalArgumentException("Giao diện gửi không được để trống.");
         }
 
         if (fileEncryptService == null) {
-            throw new IllegalArgumentException("FileEncryptService must not be null.");
+            throw new IllegalArgumentException("Dịch vụ mã hóa tệp không được để trống.");
         }
 
         this.view = view;
@@ -43,13 +43,13 @@ public class SenderController {
 
         Path selectedFile = fileChooser.getSelectedFile().toPath().toAbsolutePath().normalize();
         view.setSelectedInputFile(selectedFile);
-        view.showStatus("Selected file: " + selectedFile.getFileName());
+        view.showStatus("Đã chọn tệp: " + selectedFile.getFileName());
     }
 
     public void handleEncrypt() {
         try {
             EncryptionRequest request = buildRequestFromView();
-            view.showStatus("Encrypting file...");
+            view.showStatus("Đang mã hóa tệp...");
 
             OperationResult result = fileEncryptService.encryptFile(request);
             updateView(result);
@@ -68,7 +68,7 @@ public class SenderController {
 
         Path outputFile = view.getOutputFile();
         if (outputFile != null && outputFile.equals(inputFile)) {
-            throw new IllegalArgumentException("Output file must be different from the input file.");
+            throw new IllegalArgumentException("Tệp đầu ra phải khác tệp đầu vào.");
         }
 
         return new EncryptionRequest(inputFile, outputFile, secretKey, variant);
@@ -76,7 +76,7 @@ public class SenderController {
 
     private void updateView(OperationResult result) {
         if (result == null) {
-            showValidationError("Encryption did not return a result.");
+            showValidationError("Mã hóa không trả về kết quả.");
             return;
         }
 
@@ -92,14 +92,14 @@ public class SenderController {
 
     private String buildDisplayMessage(OperationResult result) {
         if (result.isSuccess() && result.getOutputPath() != null) {
-            return result.getMessage() + " Output: " + result.getOutputPath();
+            return result.getMessage() + " Tệp đầu ra: " + result.getOutputPath();
         }
 
         String exceptionMessage = result.getExceptionMessage();
         if (exceptionMessage != null
                 && !exceptionMessage.isBlank()
                 && !exceptionMessage.equals(result.getMessage())) {
-            return result.getMessage() + " Details: " + exceptionMessage;
+            return result.getMessage() + " Chi tiết: " + exceptionMessage;
         }
 
         return result.getMessage();

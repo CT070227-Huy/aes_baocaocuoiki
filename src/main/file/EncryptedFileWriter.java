@@ -38,53 +38,53 @@ public class EncryptedFileWriter {
 
     private void validateOutputPath(Path outputPath) {
         if (outputPath == null) {
-            throw new IllegalArgumentException("Output path must not be null.");
+            throw new IllegalArgumentException("Đường dẫn đầu ra không được để trống.");
         }
     }
 
     private void validatePackage(EncryptedPackage encryptedPackage) {
         if (encryptedPackage == null) {
-            throw new IllegalArgumentException("Encrypted package must not be null.");
+            throw new IllegalArgumentException("Gói dữ liệu mã hóa không được để trống.");
         }
 
         if (encryptedPackage.getOriginalFileName() == null || encryptedPackage.getOriginalFileName().isEmpty()) {
-            throw new IllegalArgumentException("Original file name must not be null or empty.");
+            throw new IllegalArgumentException("Tên tệp gốc không được để trống.");
         }
 
         if (encryptedPackage.getIv() == null) {
-            throw new IllegalArgumentException("IV must not be null.");
+            throw new IllegalArgumentException("IV không được để trống.");
         }
 
         if (encryptedPackage.getCipherText() == null) {
-            throw new IllegalArgumentException("Ciphertext must not be null.");
+            throw new IllegalArgumentException("Ciphertext không được để trống.");
         }
 
         if (encryptedPackage.getVariant() == null) {
-            throw new IllegalArgumentException("AES variant must not be null.");
+            throw new IllegalArgumentException("Biến thể AES không được để trống.");
         }
     }
 
     private void validateSerializedFields(byte[] fileNameBytes, byte[] iv, byte[] cipherText, AESVariant variant, byte version) {
         if (!EncryptedFileFormat.isSupportedVersion(version)) {
-            throw new IllegalArgumentException("Unsupported encrypted file version: " + version);
+            throw new IllegalArgumentException("Phiên bản tệp mã hóa không được hỗ trợ: " + version);
         }
 
         if (EncryptedFileFormat.usesVariantMetadata(version)) {
             EncryptedFileFormat.variantCode(variant);
         } else if (variant != AESConstants.DEFAULT_VARIANT) {
-            throw new IllegalArgumentException("Version 1 .enc files only support AES-128.");
+            throw new IllegalArgumentException("Tệp .enc phiên bản 1 chỉ hỗ trợ AES-128.");
         }
 
         if (fileNameBytes.length > 0xFFFF) {
-            throw new IllegalArgumentException("Original file name is too long for the .enc format.");
+            throw new IllegalArgumentException("Tên tệp gốc quá dài so với định dạng .enc.");
         }
 
         if (iv.length != EncryptedFileFormat.IV_LENGTH) {
-            throw new IllegalArgumentException("IV must be exactly 16 bytes.");
+            throw new IllegalArgumentException("IV phải có đúng 16 byte.");
         }
 
         if (cipherText.length == 0) {
-            throw new IllegalArgumentException("Ciphertext must not be empty.");
+            throw new IllegalArgumentException("Ciphertext không được rỗng.");
         }
     }
 

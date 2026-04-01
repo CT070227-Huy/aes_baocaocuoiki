@@ -18,9 +18,9 @@ import java.awt.GridLayout;
 import java.awt.Window;
 
 public class MainFrame extends JFrame {
-    private final JButton encryptButton = createActionButton("Encrypt File");
-    private final JButton decryptButton = createActionButton("Decrypt File");
-    private final JButton exitButton = createActionButton("Exit");
+    private final JButton encryptButton = createActionButton("Mã hóa tệp");
+    private final JButton decryptButton = createActionButton("Giải mã tệp");
+    private final JButton exitButton = createActionButton("Thoát");
 
     public MainFrame() {
         initializeFrame();
@@ -28,7 +28,7 @@ public class MainFrame extends JFrame {
     }
 
     private void initializeFrame() {
-        setTitle("AES File Transfer Demo");
+        setTitle("Demo Mã hóa Tệp AES");
         setSize(520, 340);
         setMinimumSize(new Dimension(520, 340));
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -53,11 +53,11 @@ public class MainFrame extends JFrame {
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setOpaque(false);
 
-        JLabel titleLabel = new JLabel("AES File Encryption Demo");
+        JLabel titleLabel = new JLabel("Demo Mã hóa và Giải mã Tệp AES");
         titleLabel.setAlignmentX(CENTER_ALIGNMENT);
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
 
-        JLabel descriptionLabel = new JLabel("Choose a feature below to encrypt or decrypt files.");
+        JLabel descriptionLabel = new JLabel("Chọn chức năng bên dưới để mã hóa hoặc giải mã tệp.");
         descriptionLabel.setAlignmentX(CENTER_ALIGNMENT);
         descriptionLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
         descriptionLabel.setForeground(new Color(80, 80, 80));
@@ -78,15 +78,15 @@ public class MainFrame extends JFrame {
     }
 
     private JLabel buildFooterLabel() {
-        JLabel footerLabel = new JLabel("Java Swing UI for file encryption and decryption.", SwingConstants.CENTER);
+        JLabel footerLabel = new JLabel("Giao diện Java Swing cho mã hóa và giải mã tệp.", SwingConstants.CENTER);
         footerLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
         footerLabel.setForeground(new Color(100, 100, 100));
         return footerLabel;
     }
 
     private void initializeActions() {
-        encryptButton.addActionListener(event -> openChildWindow(SenderFrame.class, "Encrypt File"));
-        decryptButton.addActionListener(event -> openChildWindow(ReceiverFrame.class, "Decrypt File"));
+        encryptButton.addActionListener(event -> openChildWindow(SenderFrame.class, "Mã hóa tệp"));
+        decryptButton.addActionListener(event -> openChildWindow(ReceiverFrame.class, "Giải mã tệp"));
         exitButton.addActionListener(event -> dispose());
     }
 
@@ -105,8 +105,8 @@ public class MainFrame extends JFrame {
         } catch (ReflectiveOperationException exception) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Could not open " + windowClass.getSimpleName() + ".",
-                    "Open Window Error",
+                    "Không thể mở " + windowClass.getSimpleName() + ".",
+                    "Lỗi mở cửa sổ",
                     JOptionPane.ERROR_MESSAGE
             );
         }
@@ -127,8 +127,8 @@ public class MainFrame extends JFrame {
         JLabel messageLabel = new JLabel(
                 "<html><div style='text-align:center;'>"
                         + screenName
-                        + " is not a Swing window yet.<br>"
-                        + "This placeholder keeps the main menu demo flow working."
+                        + " chưa được triển khai thành cửa sổ Swing.<br>"
+                        + "Khung tạm này giúp luồng demo từ màn hình chính vẫn hoạt động."
                         + "</div></html>",
                 SwingConstants.CENTER
         );

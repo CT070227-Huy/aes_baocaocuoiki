@@ -21,7 +21,7 @@ public class DecryptionRequest {
         this.encryptedFile = encryptedFile;
         this.outputFile = outputFile;
         this.secretKey = secretKey;
-        this.variant = Objects.requireNonNull(variant, "AES variant must not be null.");
+        this.variant = Objects.requireNonNull(variant, "Biến thể AES không được để trống.");
     }
 
     public Path getEncryptedFile() {

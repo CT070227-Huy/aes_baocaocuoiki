@@ -34,12 +34,12 @@ public final class ValidationUtils {
 
     public static void validateAesKeyHexFormat(String key) throws InvalidKeyException {
         if (key == null || key.isBlank()) {
-            throw new InvalidKeyException("Secret key must not be null or blank.");
+            throw new InvalidKeyException("Vui lòng nhập khóa bí mật.");
         }
 
         if (!isSupportedAesHexLength(key.length())) {
             throw new InvalidKeyException(
-                    "Secret key must be a HEX string with 32, 48, or 64 characters."
+                    "Khóa bí mật phải là chuỗi HEX gồm 32, 48 hoặc 64 ký tự."
             );
         }
 
@@ -48,7 +48,7 @@ public final class ValidationUtils {
 
     public static void validateSecretKeyPresent(String key) throws InvalidKeyException {
         if (key == null || key.isBlank()) {
-            throw new InvalidKeyException("Secret key must not be null or blank.");
+            throw new InvalidKeyException("Vui lòng nhập khóa bí mật.");
         }
     }
 
@@ -58,7 +58,7 @@ public final class ValidationUtils {
         int expectedHexLength = variant.getKeyLengthBytes() * 2;
         if (key.length() != expectedHexLength) {
             throw new InvalidKeyException(
-                    "Secret key must be exactly " + expectedHexLength + " hex characters for " + variant + "."
+                    "Khóa bí mật phải có đúng " + expectedHexLength + " ký tự hex cho " + variant + "."
             );
         }
 
@@ -67,7 +67,7 @@ public final class ValidationUtils {
         byte[] keyBytes = HexUtils.fromHex(key);
         if (keyBytes.length != variant.getKeyLengthBytes()) {
             throw new InvalidKeyException(
-                    "Secret key must decode to exactly " + variant.getKeyLengthBytes() + " bytes for " + variant + "."
+                    "Khóa bí mật phải giải mã thành đúng " + variant.getKeyLengthBytes() + " byte cho " + variant + "."
             );
         }
 
@@ -85,7 +85,7 @@ public final class ValidationUtils {
             HexUtils.fromHex(key);
         } catch (IllegalArgumentException exception) {
             throw new InvalidKeyException(
-                    "Secret key must contain only hexadecimal characters (0-9, A-F).",
+                    "Khóa bí mật chỉ được chứa ký tự hex hợp lệ (0-9, A-F).",
                     exception
             );
         }
@@ -93,21 +93,21 @@ public final class ValidationUtils {
 
     public static void validateBlockSize(int size) {
         if (size <= 0 || size > 255) {
-            throw new IllegalArgumentException("Block size must be in range 1..255.");
+            throw new IllegalArgumentException("Kích thước block phải trong khoảng 1..255.");
         }
     }
 
     public static void validateFileExists(Path path) {
         if (path == null) {
-            throw new IllegalArgumentException("File path must not be null.");
+            throw new IllegalArgumentException("Vui lòng chọn tệp.");
         }
 
         if (!Files.exists(path)) {
-            throw new IllegalArgumentException("File does not exist: " + path);
+            throw new IllegalArgumentException("Tệp không tồn tại: " + path);
         }
 
         if (!Files.isRegularFile(path)) {
-            throw new IllegalArgumentException("Path must point to a regular file: " + path);
+            throw new IllegalArgumentException("Đường dẫn phải trỏ tới một tệp hợp lệ: " + path);
         }
     }
 }

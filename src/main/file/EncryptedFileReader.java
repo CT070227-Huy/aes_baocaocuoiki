@@ -22,58 +22,58 @@ public class EncryptedFileReader {
         try {
             fileContent = Files.readAllBytes(inputPath);
         } catch (IOException exception) {
-            throw new InvalidFormatException("Failed to read encrypted file: " + inputPath, exception);
+            throw new InvalidFormatException("Không thể đọc tệp mã hóa: " + inputPath, exception);
         }
 
         if (fileContent.length < EncryptedFileFormat.MINIMUM_FIXED_METADATA_LENGTH) {
-            throw new InvalidFormatException("Encrypted file is too short to match the .enc format.");
+            throw new InvalidFormatException("Tệp mã hóa quá ngắn và không đúng định dạng .enc.");
         }
 
         ByteBuffer buffer = ByteBuffer.wrap(fileContent);
 
         byte[] header = readBytes(buffer, EncryptedFileFormat.MAGIC_HEADER_LENGTH, "magic header");
         if (!EncryptedFileFormat.isValidHeader(header)) {
-            throw new InvalidFormatException("Invalid .enc magic header.");
+            throw new InvalidFormatException("Magic header của tệp .enc không hợp lệ.");
         }
 
         byte version = buffer.get();
         if (!EncryptedFileFormat.isSupportedVersion(version)) {
-            throw new InvalidFormatException("Unsupported .enc version: " + version);
+            throw new InvalidFormatException("Phiên bản .enc không được hỗ trợ: " + version);
         }
 
         if (fileContent.length < EncryptedFileFormat.fixedMetadataLength(version)) {
-            throw new InvalidFormatException("Encrypted file is too short for .enc version " + version + ".");
+            throw new InvalidFormatException("Tệp mã hóa quá ngắn đối với phiên bản .enc " + version + ".");
         }
 
         AESVariant variant = readVariant(buffer, version);
 
         int originalFileNameLength = Short.toUnsignedInt(buffer.getShort());
         if (originalFileNameLength == 0) {
-            throw new InvalidFormatException("Original file name length must be greater than zero.");
+            throw new InvalidFormatException("Độ dài tên tệp gốc phải lớn hơn 0.");
         }
 
-        byte[] originalFileNameBytes = readBytes(buffer, originalFileNameLength, "original file name");
+        byte[] originalFileNameBytes = readBytes(buffer, originalFileNameLength, "tên tệp gốc");
         String originalFileName = decodeFileName(originalFileNameBytes);
 
         byte[] iv = readBytes(buffer, EncryptedFileFormat.IV_LENGTH, "IV");
 
         if (buffer.remaining() < EncryptedFileFormat.CIPHER_TEXT_LENGTH_BYTES) {
-            throw new InvalidFormatException("Encrypted file is missing the ciphertext length field.");
+            throw new InvalidFormatException("Tệp mã hóa thiếu trường độ dài ciphertext.");
         }
 
         long cipherTextLength = buffer.getLong();
         if (cipherTextLength <= 0) {
-            throw new InvalidFormatException("Ciphertext length must be greater than zero.");
+            throw new InvalidFormatException("Độ dài ciphertext phải lớn hơn 0.");
         }
 
         if (cipherTextLength > Integer.MAX_VALUE) {
-            throw new InvalidFormatException("Ciphertext is too large to be loaded into memory.");
+            throw new InvalidFormatException("Ciphertext quá lớn để nạp vào bộ nhớ.");
         }
 
-        byte[] cipherText = readBytes(buffer, (int) cipherTextLength, "ciphertext");
+        byte[] cipherText = readBytes(buffer, (int) cipherTextLength, "dữ liệu mã hóa");
 
         if (buffer.hasRemaining()) {
-            throw new InvalidFormatException("Encrypted file contains unexpected trailing data.");
+            throw new InvalidFormatException("Tệp mã hóa chứa dữ liệu dư không mong muốn.");
         }
 
         return new EncryptedPackage(originalFileName, iv, cipherText, variant, version);
@@ -81,21 +81,21 @@ public class EncryptedFileReader {
 
     private void validateInputPath(Path inputPath) throws InvalidFormatException {
         if (inputPath == null) {
-            throw new IllegalArgumentException("Input path must not be null.");
+            throw new IllegalArgumentException("Đường dẫn đầu vào không được để trống.");
         }
 
         if (!Files.exists(inputPath)) {
-            throw new InvalidFormatException("Encrypted file does not exist: " + inputPath);
+            throw new InvalidFormatException("Tệp mã hóa không tồn tại: " + inputPath);
         }
 
         if (!Files.isRegularFile(inputPath)) {
-            throw new InvalidFormatException("Input path is not a regular file: " + inputPath);
+            throw new InvalidFormatException("Đường dẫn đầu vào không phải là tệp hợp lệ: " + inputPath);
         }
     }
 
     private byte[] readBytes(ByteBuffer buffer, int length, String fieldName) throws InvalidFormatException {
         if (length < 0 || buffer.remaining() < length) {
-            throw new InvalidFormatException("Encrypted file is truncated while reading " + fieldName + ".");
+            throw new InvalidFormatException("Tệp mã hóa bị thiếu dữ liệu khi đọc " + fieldName + ".");
         }
 
         byte[] bytes = new byte[length];
@@ -109,7 +109,7 @@ public class EncryptedFileReader {
         }
 
         if (buffer.remaining() < EncryptedFileFormat.VARIANT_LENGTH) {
-            throw new InvalidFormatException("Encrypted file is missing the AES variant field.");
+            throw new InvalidFormatException("Tệp mã hóa thiếu trường biến thể AES.");
         }
 
         byte variantCode = buffer.get();
@@ -129,7 +129,7 @@ public class EncryptedFileReader {
         try {
             return decoder.decode(ByteBuffer.wrap(fileNameBytes)).toString();
         } catch (CharacterCodingException exception) {
-            throw new InvalidFormatException("Original file name is not valid UTF-8.", exception);
+            throw new InvalidFormatException("Tên tệp gốc không phải UTF-8 hợp lệ.", exception);
         }
     }
 }

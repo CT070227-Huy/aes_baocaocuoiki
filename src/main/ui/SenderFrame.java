@@ -34,8 +34,8 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
     private final JComboBox<String> algorithmCombo = new JComboBox<>(ALGORITHM_OPTIONS);
     private final JLabel keyHintLabel = new JLabel();
     private final JTextArea statusArea = new JTextArea();
-    private final JButton browseButton = new JButton("Browse");
-    private final JButton encryptButton = new JButton("Encrypt");
+    private final JButton browseButton = new JButton("Duyệt");
+    private final JButton encryptButton = new JButton("Mã hóa");
 
     private final SenderController controller;
     private Path selectedInputFile;
@@ -47,7 +47,7 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
     }
 
     private void initializeFrame() {
-        setTitle("Encrypt File");
+        setTitle("Mã hóa tệp");
         setSize(640, 420);
         setMinimumSize(new Dimension(640, 420));
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -79,11 +79,11 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.setOpaque(false);
 
-        JLabel titleLabel = new JLabel("File Encryption");
+        JLabel titleLabel = new JLabel("Mã hóa tệp");
         titleLabel.setAlignmentX(LEFT_ALIGNMENT);
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
 
-        JLabel descriptionLabel = new JLabel("Choose a file, select AES-CBC, enter the key as hex, then encrypt.");
+        JLabel descriptionLabel = new JLabel("Chọn tệp, chọn AES-CBC, nhập khóa ở dạng hex rồi mã hóa.");
         descriptionLabel.setAlignmentX(LEFT_ALIGNMENT);
         descriptionLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
         descriptionLabel.setForeground(new Color(85, 85, 85));
@@ -118,7 +118,7 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
         constraints.gridx = 0;
         constraints.gridy = 0;
         constraints.weightx = 0;
-        formPanel.add(new JLabel("Source File"), constraints);
+        formPanel.add(new JLabel("Tệp đầu vào"), constraints);
 
         constraints.gridx = 1;
         constraints.weightx = 1;
@@ -136,7 +136,7 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.WEST;
         constraints.insets = new Insets(6, 6, 6, 6);
-        formPanel.add(new JLabel("Algorithm"), constraints);
+        formPanel.add(new JLabel("Thuật toán"), constraints);
 
         constraints.gridx = 1;
         constraints.weightx = 1;
@@ -149,7 +149,7 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
         constraints.gridwidth = 1;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.WEST;
-        formPanel.add(new JLabel("Secret Key"), constraints);
+        formPanel.add(new JLabel("Khóa bí mật"), constraints);
 
         constraints.gridx = 1;
         constraints.weightx = 1;
@@ -182,7 +182,7 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
         JPanel statusPanel = new JPanel(new BorderLayout(0, 8));
         statusPanel.setOpaque(false);
 
-        JLabel statusLabel = new JLabel("Status / Log");
+        JLabel statusLabel = new JLabel("Trạng thái / Nhật ký");
         statusLabel.setFont(new Font("SansSerif", Font.BOLD, 13));
 
         statusArea.setEditable(false);
@@ -239,12 +239,12 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
 
     @Override
     public void showSuccess(String message) {
-        JOptionPane.showMessageDialog(this, message, "Encryption Success", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, message, "Mã hóa thành công", JOptionPane.INFORMATION_MESSAGE);
     }
 
     @Override
     public void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Encryption Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, message, "Lỗi mã hóa", JOptionPane.ERROR_MESSAGE);
     }
 
     private void appendStatus(String message) {
@@ -263,7 +263,7 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
     private void updateKeyHint() {
         AESVariant variant = selectedVariant();
         int hexLength = variant.getKeyLengthBytes() * 2;
-        keyHintLabel.setText("Key length: " + hexLength + " hex chars (" + variant.getKeyLengthBytes() + " bytes)");
+        keyHintLabel.setText("Độ dài khóa: " + hexLength + " ký tự hex (" + variant.getKeyLengthBytes() + " byte)");
     }
 
     private AESVariant selectedVariant() {

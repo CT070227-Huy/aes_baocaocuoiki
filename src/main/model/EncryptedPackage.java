@@ -22,7 +22,7 @@ public class EncryptedPackage {
         this.originalFileName = originalFileName;
         this.iv = copy(iv);
         this.cipherText = copy(cipherText);
-        this.variant = Objects.requireNonNull(variant, "AES variant must not be null.");
+        this.variant = Objects.requireNonNull(variant, "Biến thể AES không được để trống.");
         this.version = version;
     }
 

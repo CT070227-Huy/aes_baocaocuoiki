@@ -25,22 +25,22 @@ public class PKCS7Padding {
         validateData(data);
 
         if (data.length == 0) {
-            throw new IllegalArgumentException("Padded data must not be empty.");
+            throw new IllegalArgumentException("Dữ liệu đã đệm không được rỗng.");
         }
 
         if (data.length % blockSize != 0) {
-            throw new IllegalArgumentException("Padded data length must be a multiple of block size.");
+            throw new IllegalArgumentException("Độ dài dữ liệu đã đệm phải là bội số của kích thước block.");
         }
 
         int paddingLength = data[data.length - 1] & 0xFF;
         if (paddingLength < 1 || paddingLength > blockSize) {
-            throw new IllegalArgumentException("Invalid PKCS#7 padding length.");
+            throw new IllegalArgumentException("Độ dài đệm PKCS#7 không hợp lệ.");
         }
 
         int paddingStart = data.length - paddingLength;
         for (int i = paddingStart; i < data.length; i++) {
             if ((data[i] & 0xFF) != paddingLength) {
-                throw new IllegalArgumentException("Invalid PKCS#7 padding bytes.");
+                throw new IllegalArgumentException("Byte đệm PKCS#7 không hợp lệ.");
             }
         }
 
@@ -52,13 +52,13 @@ public class PKCS7Padding {
     // PKCS#7 supports block sizes from 1 to 255.
     private void validateBlockSize(int blockSize) {
         if (blockSize <= 0 || blockSize > 255) {
-            throw new IllegalArgumentException("Block size must be in range 1..255.");
+            throw new IllegalArgumentException("Kích thước block phải trong khoảng 1..255.");
         }
     }
 
     private void validateData(byte[] data) {
         if (data == null) {
-            throw new IllegalArgumentException("Data must not be null.");
+            throw new IllegalArgumentException("Dữ liệu không được để trống.");
         }
     }
 }

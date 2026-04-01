@@ -9,7 +9,7 @@ public final class HexUtils {
 
     public static String toHex(byte[] data) {
         if (data == null) {
-            throw new IllegalArgumentException("Byte array must not be null.");
+            throw new IllegalArgumentException("Mảng byte không được để trống.");
         }
 
         char[] hexChars = new char[data.length * 2];
@@ -24,11 +24,11 @@ public final class HexUtils {
 
     public static byte[] fromHex(String hex) {
         if (hex == null) {
-            throw new IllegalArgumentException("Hex string must not be null.");
+            throw new IllegalArgumentException("Chuỗi hex không được để trống.");
         }
 
         if ((hex.length() & 1) != 0) {
-            throw new IllegalArgumentException("Hex string must have an even number of characters.");
+            throw new IllegalArgumentException("Chuỗi hex phải có số ký tự chẵn.");
         }
 
         byte[] result = new byte[hex.length() / 2];
@@ -54,6 +54,6 @@ public final class HexUtils {
             return hexChar - 'a' + 10;
         }
 
-        throw new IllegalArgumentException("Invalid hex character: '" + hexChar + "'.");
+        throw new IllegalArgumentException("Ký tự hex không hợp lệ: '" + hexChar + "'.");
     }
 }
