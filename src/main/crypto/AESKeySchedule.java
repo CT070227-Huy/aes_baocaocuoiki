@@ -1,41 +1,64 @@
 package crypto;
 
+import java.util.Objects;
+
 public class AESKeySchedule {
     private static final int WORD_SIZE = 4;
-    private static final int KEY_WORDS = AESConstants.KEY_SIZE / WORD_SIZE;
-    private static final int TOTAL_WORDS = (AESConstants.NUMBER_OF_ROUNDS + 1) * KEY_WORDS;
-    private static final int EXPANDED_KEY_SIZE = TOTAL_WORDS * WORD_SIZE;
+    private static final int BLOCK_WORDS = AESConstants.BLOCK_SIZE / WORD_SIZE;
 
-    // Expand one 16-byte AES-128 key into 11 round keys (176 bytes).
+    private final AESVariant variant;
+
+    public AESKeySchedule() {
+        this(AESConstants.DEFAULT_VARIANT);
+    }
+
+    public AESKeySchedule(AESVariant variant) {
+        this.variant = Objects.requireNonNull(variant, "AES variant must not be null.");
+    }
+
+    // Backward-compatible overload that uses the instance's configured variant.
     public byte[] expandKey(byte[] key) {
-        validateKey(key);
+        return expandKey(key, variant);
+    }
 
-        byte[] expandedKey = new byte[EXPANDED_KEY_SIZE];
-        System.arraycopy(key, 0, expandedKey, 0, AESConstants.KEY_SIZE);
+    // Expand the raw key into round keys for the requested AES variant.
+    public byte[] expandKey(byte[] key, AESVariant variant) {
+        AESVariant resolvedVariant = Objects.requireNonNull(variant, "AES variant must not be null.");
+        validateKey(key, resolvedVariant);
 
-        for (int wordIndex = KEY_WORDS; wordIndex < TOTAL_WORDS; wordIndex++) {
-            byte[] tempWord = getWord(expandedKey, wordIndex - 1);
+        int nk = resolvedVariant.getNk();
+        int nr = resolvedVariant.getNr();
+        int totalWords = BLOCK_WORDS * (nr + 1);
+        byte[] expandedKey = new byte[resolvedVariant.getExpandedKeyLengthBytes()];
+        System.arraycopy(key, 0, expandedKey, 0, resolvedVariant.getKeyLengthBytes());
 
-            // Every 4th word applies RotWord, SubWord, then XOR with RCON.
-            if (wordIndex % KEY_WORDS == 0) {
-                tempWord = xorWord(subWord(rotWord(tempWord)), rconWord(wordIndex / KEY_WORDS));
+        for (int i = nk; i < totalWords; i++) {
+            byte[] tempWord = getWord(expandedKey, i - 1);
+
+            if (i % nk == 0) {
+                tempWord = xorWord(subWord(rotWord(tempWord)), rconWord(i / nk));
+            } else if (resolvedVariant == AESVariant.AES_256 && i % nk == 4) {
+                // AES-256 applies an extra SubWord in the middle of each key block.
+                tempWord = subWord(tempWord);
             }
 
-            byte[] previousKeyWord = getWord(expandedKey, wordIndex - KEY_WORDS);
+            byte[] previousKeyWord = getWord(expandedKey, i - nk);
             byte[] newWord = xorWord(previousKeyWord, tempWord);
-            setWord(expandedKey, wordIndex, newWord);
+            setWord(expandedKey, i, newWord);
         }
 
         return expandedKey;
     }
 
-    private void validateKey(byte[] key) {
+    private void validateKey(byte[] key, AESVariant variant) {
         if (key == null) {
-            throw new IllegalArgumentException("AES-128 key must not be null.");
+            throw new IllegalArgumentException("AES key must not be null.");
         }
 
-        if (key.length != AESConstants.KEY_SIZE) {
-            throw new IllegalArgumentException("AES-128 key must be exactly 16 bytes.");
+        if (key.length != variant.getKeyLengthBytes()) {
+            throw new IllegalArgumentException(
+                    "AES key must be exactly " + variant.getKeyLengthBytes() + " bytes."
+            );
         }
     }
 

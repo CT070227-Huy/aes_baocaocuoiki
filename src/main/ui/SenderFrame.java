@@ -1,11 +1,13 @@
 package ui;
 
 import controller.SenderController;
+import crypto.AESVariant;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -25,8 +27,12 @@ import java.awt.Insets;
 import java.nio.file.Path;
 
 public class SenderFrame extends JFrame implements SenderController.SenderView {
+    private static final String[] ALGORITHM_OPTIONS = {"AES-128-CBC", "AES-192-CBC", "AES-256-CBC"};
+
     private final JTextField inputFileField = new JTextField();
     private final JPasswordField secretKeyField = new JPasswordField();
+    private final JComboBox<String> algorithmCombo = new JComboBox<>(ALGORITHM_OPTIONS);
+    private final JLabel keyHintLabel = new JLabel();
     private final JTextArea statusArea = new JTextArea();
     private final JButton browseButton = new JButton("Browse");
     private final JButton encryptButton = new JButton("Encrypt");
@@ -77,7 +83,7 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
         titleLabel.setAlignmentX(LEFT_ALIGNMENT);
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
 
-        JLabel descriptionLabel = new JLabel("Choose a file, enter a 16-byte AES key, then encrypt.");
+        JLabel descriptionLabel = new JLabel("Choose a file, select AES-CBC, enter the key as hex, then encrypt.");
         descriptionLabel.setAlignmentX(LEFT_ALIGNMENT);
         descriptionLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
         descriptionLabel.setForeground(new Color(85, 85, 85));
@@ -104,6 +110,10 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
         inputFileField.setPreferredSize(new Dimension(0, 34));
 
         secretKeyField.setPreferredSize(new Dimension(0, 34));
+        algorithmCombo.setPreferredSize(new Dimension(0, 34));
+        keyHintLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        keyHintLabel.setForeground(new Color(85, 85, 85));
+        updateKeyHint();
 
         constraints.gridx = 0;
         constraints.gridy = 0;
@@ -125,6 +135,20 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
         constraints.gridwidth = 1;
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets(6, 6, 6, 6);
+        formPanel.add(new JLabel("Algorithm"), constraints);
+
+        constraints.gridx = 1;
+        constraints.weightx = 1;
+        constraints.gridwidth = 2;
+        formPanel.add(algorithmCombo, constraints);
+
+        constraints.gridx = 0;
+        constraints.gridy = 2;
+        constraints.weightx = 0;
+        constraints.gridwidth = 1;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.WEST;
         formPanel.add(new JLabel("Secret Key"), constraints);
 
         constraints.gridx = 1;
@@ -133,7 +157,16 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
         formPanel.add(secretKeyField, constraints);
 
         constraints.gridx = 1;
-        constraints.gridy = 2;
+        constraints.gridy = 3;
+        constraints.gridwidth = 2;
+        constraints.weightx = 1;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets(0, 6, 6, 6);
+        formPanel.add(keyHintLabel, constraints);
+
+        constraints.gridx = 1;
+        constraints.gridy = 4;
         constraints.gridwidth = 2;
         constraints.weightx = 1;
         constraints.fill = GridBagConstraints.NONE;
@@ -170,6 +203,7 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
     private void initializeActions() {
         browseButton.addActionListener(event -> controller.handleChooseFile(this));
         encryptButton.addActionListener(event -> controller.handleEncrypt());
+        algorithmCombo.addActionListener(event -> updateKeyHint());
     }
 
     @Override
@@ -185,6 +219,11 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
     @Override
     public String getSecretKey() {
         return new String(secretKeyField.getPassword());
+    }
+
+    @Override
+    public AESVariant getSelectedVariant() {
+        return selectedVariant();
     }
 
     @Override
@@ -219,5 +258,19 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
 
         statusArea.append(message);
         statusArea.setCaretPosition(statusArea.getDocument().getLength());
+    }
+
+    private void updateKeyHint() {
+        AESVariant variant = selectedVariant();
+        int hexLength = variant.getKeyLengthBytes() * 2;
+        keyHintLabel.setText("Key length: " + hexLength + " hex chars (" + variant.getKeyLengthBytes() + " bytes)");
+    }
+
+    private AESVariant selectedVariant() {
+        return switch (algorithmCombo.getSelectedIndex()) {
+            case 1 -> AESVariant.AES_192;
+            case 2 -> AESVariant.AES_256;
+            default -> AESVariant.AES_128;
+        };
     }
 }

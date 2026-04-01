@@ -1,10 +1,11 @@
 package crypto;
 
 public final class AESConstants {
-    // AES-128 uses 16-byte blocks, 16-byte keys, and 10 rounds.
+    // AES always uses 16-byte blocks; the app still defaults to AES-128.
     public static final int BLOCK_SIZE = 16;
-    public static final int KEY_SIZE = 16;
-    public static final int NUMBER_OF_ROUNDS = 10;
+    public static final AESVariant DEFAULT_VARIANT = AESVariant.AES_128;
+    public static final int KEY_SIZE = DEFAULT_VARIANT.getKeyLengthBytes();
+    public static final int NUMBER_OF_ROUNDS = DEFAULT_VARIANT.getNr();
 
     // Rijndael S-Box for SubBytes.
     public static final int[] S_BOX = {
@@ -46,7 +47,7 @@ public final class AESConstants {
         0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26, 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D
     };
 
-    // Round constants for AES-128 key expansion.
+    // Round constants used during AES key expansion.
     public static final int[] RCON = {
         0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36
     };

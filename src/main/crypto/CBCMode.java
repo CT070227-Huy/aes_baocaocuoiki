@@ -1,22 +1,41 @@
 package crypto;
 
+import java.util.Objects;
+
 public class CBCMode {
-    private final AESKeySchedule keySchedule = new AESKeySchedule();
-    private final AESBlockCipher blockCipher = new AESBlockCipher();
+    private final AESVariant variant;
+    private final AESKeySchedule keySchedule;
+    private final AESBlockCipher blockCipher;
+
+    public CBCMode() {
+        this(AESConstants.DEFAULT_VARIANT);
+    }
+
+    public CBCMode(AESVariant variant) {
+        this.variant = Objects.requireNonNull(variant, "AES variant must not be null.");
+        this.keySchedule = new AESKeySchedule(variant);
+        this.blockCipher = new AESBlockCipher(variant);
+    }
 
     public byte[] encrypt(byte[] plainText, byte[] key, byte[] iv) {
+        return encrypt(plainText, key, iv, variant);
+    }
+
+    // CBC chaining is unchanged; only the AES variant is configurable.
+    public byte[] encrypt(byte[] plainText, byte[] key, byte[] iv, AESVariant variant) {
+        AESVariant resolvedVariant = Objects.requireNonNull(variant, "AES variant must not be null.");
         validateInput(plainText, "Plaintext");
-        validateKey(key);
+        validateKey(key, resolvedVariant);
         validateIv(iv);
 
-        byte[] expandedKey = keySchedule.expandKey(key);
+        byte[] expandedKey = keySchedule.expandKey(key, resolvedVariant);
         byte[] cipherText = new byte[plainText.length];
         byte[] previousBlock = copyBlock(iv, 0);
 
         for (int offset = 0; offset < plainText.length; offset += AESConstants.BLOCK_SIZE) {
             byte[] plainBlock = copyBlock(plainText, offset);
             byte[] xoredBlock = xorBlocks(plainBlock, previousBlock);
-            byte[] encryptedBlock = blockCipher.encryptBlock(xoredBlock, expandedKey);
+            byte[] encryptedBlock = blockCipher.encryptBlock(xoredBlock, expandedKey, resolvedVariant);
 
             System.arraycopy(encryptedBlock, 0, cipherText, offset, AESConstants.BLOCK_SIZE);
             previousBlock = encryptedBlock;
@@ -26,17 +45,23 @@ public class CBCMode {
     }
 
     public byte[] decrypt(byte[] cipherText, byte[] key, byte[] iv) {
+        return decrypt(cipherText, key, iv, variant);
+    }
+
+    // CBC chaining is unchanged; only the AES variant is configurable.
+    public byte[] decrypt(byte[] cipherText, byte[] key, byte[] iv, AESVariant variant) {
+        AESVariant resolvedVariant = Objects.requireNonNull(variant, "AES variant must not be null.");
         validateInput(cipherText, "Ciphertext");
-        validateKey(key);
+        validateKey(key, resolvedVariant);
         validateIv(iv);
 
-        byte[] expandedKey = keySchedule.expandKey(key);
+        byte[] expandedKey = keySchedule.expandKey(key, resolvedVariant);
         byte[] plainText = new byte[cipherText.length];
         byte[] previousBlock = copyBlock(iv, 0);
 
         for (int offset = 0; offset < cipherText.length; offset += AESConstants.BLOCK_SIZE) {
             byte[] cipherBlock = copyBlock(cipherText, offset);
-            byte[] decryptedBlock = blockCipher.decryptBlock(cipherBlock, expandedKey);
+            byte[] decryptedBlock = blockCipher.decryptBlock(cipherBlock, expandedKey, resolvedVariant);
             byte[] plainBlock = xorBlocks(decryptedBlock, previousBlock);
 
             System.arraycopy(plainBlock, 0, plainText, offset, AESConstants.BLOCK_SIZE);
@@ -52,17 +77,21 @@ public class CBCMode {
         }
 
         if (data.length % AESConstants.BLOCK_SIZE != 0) {
-            throw new IllegalArgumentException(label + " length must be a multiple of 16 bytes.");
+            throw new IllegalArgumentException(
+                    label + " length must be a multiple of " + AESConstants.BLOCK_SIZE + " bytes."
+            );
         }
     }
 
-    private void validateKey(byte[] key) {
+    private void validateKey(byte[] key, AESVariant variant) {
         if (key == null) {
-            throw new IllegalArgumentException("AES-128 key must not be null.");
+            throw new IllegalArgumentException("AES key must not be null.");
         }
 
-        if (key.length != AESConstants.KEY_SIZE) {
-            throw new IllegalArgumentException("AES-128 key must be exactly 16 bytes.");
+        if (key.length != variant.getKeyLengthBytes()) {
+            throw new IllegalArgumentException(
+                    "AES key must be exactly " + variant.getKeyLengthBytes() + " bytes."
+            );
         }
     }
 
@@ -72,7 +101,9 @@ public class CBCMode {
         }
 
         if (iv.length != AESConstants.BLOCK_SIZE) {
-            throw new IllegalArgumentException("IV must be exactly 16 bytes.");
+            throw new IllegalArgumentException(
+                    "IV must be exactly " + AESConstants.BLOCK_SIZE + " bytes."
+            );
         }
     }
 

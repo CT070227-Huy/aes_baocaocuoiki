@@ -1,19 +1,35 @@
 package crypto;
 
+import java.util.Objects;
+
 public class AESBlockCipher {
     private static final int STATE_SIZE = 4;
-    private static final int EXPANDED_KEY_SIZE =
-            (AESConstants.NUMBER_OF_ROUNDS + 1) * AESConstants.BLOCK_SIZE;
+
+    private final AESVariant variant;
+
+    public AESBlockCipher() {
+        this(AESConstants.DEFAULT_VARIANT);
+    }
+
+    public AESBlockCipher(AESVariant variant) {
+        this.variant = Objects.requireNonNull(variant, "AES variant must not be null.");
+    }
 
     public byte[] encryptBlock(byte[] inputBlock, byte[] expandedKey) {
+        return encryptBlock(inputBlock, expandedKey, variant);
+    }
+
+    public byte[] encryptBlock(byte[] inputBlock, byte[] expandedKey, AESVariant variant) {
+        AESVariant resolvedVariant = Objects.requireNonNull(variant, "AES variant must not be null.");
         validateBlock(inputBlock);
-        validateExpandedKey(expandedKey);
+        validateExpandedKey(expandedKey, resolvedVariant);
 
         int[][] state = toState(inputBlock);
+        int rounds = resolvedVariant.getNr();
 
         addRoundKey(state, expandedKey, 0);
 
-        for (int round = 1; round < AESConstants.NUMBER_OF_ROUNDS; round++) {
+        for (int round = 1; round < rounds; round++) {
             subBytes(state);
             shiftRows(state);
             mixColumns(state);
@@ -22,20 +38,26 @@ public class AESBlockCipher {
 
         subBytes(state);
         shiftRows(state);
-        addRoundKey(state, expandedKey, AESConstants.NUMBER_OF_ROUNDS);
+        addRoundKey(state, expandedKey, rounds);
 
         return fromState(state);
     }
 
     public byte[] decryptBlock(byte[] inputBlock, byte[] expandedKey) {
+        return decryptBlock(inputBlock, expandedKey, variant);
+    }
+
+    public byte[] decryptBlock(byte[] inputBlock, byte[] expandedKey, AESVariant variant) {
+        AESVariant resolvedVariant = Objects.requireNonNull(variant, "AES variant must not be null.");
         validateBlock(inputBlock);
-        validateExpandedKey(expandedKey);
+        validateExpandedKey(expandedKey, resolvedVariant);
 
         int[][] state = toState(inputBlock);
+        int rounds = resolvedVariant.getNr();
 
-        addRoundKey(state, expandedKey, AESConstants.NUMBER_OF_ROUNDS);
+        addRoundKey(state, expandedKey, rounds);
 
-        for (int round = AESConstants.NUMBER_OF_ROUNDS - 1; round >= 1; round--) {
+        for (int round = rounds - 1; round >= 1; round--) {
             invShiftRows(state);
             invSubBytes(state);
             addRoundKey(state, expandedKey, round);
@@ -55,17 +77,21 @@ public class AESBlockCipher {
         }
 
         if (inputBlock.length != AESConstants.BLOCK_SIZE) {
-            throw new IllegalArgumentException("Input block must be exactly 16 bytes.");
+            throw new IllegalArgumentException(
+                    "Input block must be exactly " + AESConstants.BLOCK_SIZE + " bytes."
+            );
         }
     }
 
-    private void validateExpandedKey(byte[] expandedKey) {
+    private void validateExpandedKey(byte[] expandedKey, AESVariant variant) {
         if (expandedKey == null) {
             throw new IllegalArgumentException("Expanded key must not be null.");
         }
 
-        if (expandedKey.length != EXPANDED_KEY_SIZE) {
-            throw new IllegalArgumentException("Expanded key must be exactly 176 bytes.");
+        if (expandedKey.length != variant.getExpandedKeyLengthBytes()) {
+            throw new IllegalArgumentException(
+                    "Expanded key must be exactly " + variant.getExpandedKeyLengthBytes() + " bytes."
+            );
         }
     }
 

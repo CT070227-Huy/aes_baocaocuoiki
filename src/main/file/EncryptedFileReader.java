@@ -1,5 +1,7 @@
 package file;
 
+import crypto.AESConstants;
+import crypto.AESVariant;
 import exception.InvalidFormatException;
 import model.EncryptedPackage;
 
@@ -23,7 +25,7 @@ public class EncryptedFileReader {
             throw new InvalidFormatException("Failed to read encrypted file: " + inputPath, exception);
         }
 
-        if (fileContent.length < EncryptedFileFormat.FIXED_METADATA_LENGTH) {
+        if (fileContent.length < EncryptedFileFormat.MINIMUM_FIXED_METADATA_LENGTH) {
             throw new InvalidFormatException("Encrypted file is too short to match the .enc format.");
         }
 
@@ -38,6 +40,12 @@ public class EncryptedFileReader {
         if (!EncryptedFileFormat.isSupportedVersion(version)) {
             throw new InvalidFormatException("Unsupported .enc version: " + version);
         }
+
+        if (fileContent.length < EncryptedFileFormat.fixedMetadataLength(version)) {
+            throw new InvalidFormatException("Encrypted file is too short for .enc version " + version + ".");
+        }
+
+        AESVariant variant = readVariant(buffer, version);
 
         int originalFileNameLength = Short.toUnsignedInt(buffer.getShort());
         if (originalFileNameLength == 0) {
@@ -68,7 +76,7 @@ public class EncryptedFileReader {
             throw new InvalidFormatException("Encrypted file contains unexpected trailing data.");
         }
 
-        return new EncryptedPackage(originalFileName, iv, cipherText, version);
+        return new EncryptedPackage(originalFileName, iv, cipherText, variant, version);
     }
 
     private void validateInputPath(Path inputPath) throws InvalidFormatException {
@@ -93,6 +101,24 @@ public class EncryptedFileReader {
         byte[] bytes = new byte[length];
         buffer.get(bytes);
         return bytes;
+    }
+
+    private AESVariant readVariant(ByteBuffer buffer, byte version) throws InvalidFormatException {
+        if (!EncryptedFileFormat.usesVariantMetadata(version)) {
+            return AESConstants.DEFAULT_VARIANT;
+        }
+
+        if (buffer.remaining() < EncryptedFileFormat.VARIANT_LENGTH) {
+            throw new InvalidFormatException("Encrypted file is missing the AES variant field.");
+        }
+
+        byte variantCode = buffer.get();
+
+        try {
+            return EncryptedFileFormat.variantFromCode(variantCode);
+        } catch (IllegalArgumentException exception) {
+            throw new InvalidFormatException(exception.getMessage(), exception);
+        }
     }
 
     private String decodeFileName(byte[] fileNameBytes) throws InvalidFormatException {

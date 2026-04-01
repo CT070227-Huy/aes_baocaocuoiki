@@ -1,6 +1,7 @@
 package file;
 
 import crypto.AESConstants;
+import crypto.AESVariant;
 import crypto.CBCMode;
 import crypto.PKCS7Padding;
 import exception.InvalidFormatException;
@@ -8,9 +9,9 @@ import exception.InvalidKeyException;
 import model.DecryptionRequest;
 import model.EncryptedPackage;
 import model.OperationResult;
+import util.ValidationUtils;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -26,11 +27,13 @@ public class FileDecryptService {
             validateRequest(request);
 
             EncryptedPackage encryptedPackage = fileReader.read(request.getEncryptedFile());
-            byte[] secretKeyBytes = resolveSecretKey(request.getSecretKey());
+            AESVariant variant = resolveVariant(request, encryptedPackage);
+            byte[] secretKeyBytes = resolveSecretKey(request.getSecretKey(), variant);
             byte[] decryptedBytes = cbcMode.decrypt(
                     encryptedPackage.getCipherText(),
                     secretKeyBytes,
-                    encryptedPackage.getIv()
+                    encryptedPackage.getIv(),
+                    variant
             );
             byte[] plainBytes = padding.unpad(decryptedBytes, AESConstants.BLOCK_SIZE);
             Path outputPath = resolveOutputPath(request, encryptedPackage.getOriginalFileName());
@@ -79,17 +82,19 @@ public class FileDecryptService {
         }
     }
 
-    private byte[] resolveSecretKey(String secretKey) throws InvalidKeyException {
-        if (secretKey == null || secretKey.isBlank()) {
-            throw new InvalidKeyException("Secret key must not be null or blank.");
+    private byte[] resolveSecretKey(String secretKey, AESVariant variant) throws InvalidKeyException {
+        return ValidationUtils.parseAesKeyHex(secretKey, variant);
+    }
+
+    private AESVariant resolveVariant(DecryptionRequest request, EncryptedPackage encryptedPackage) {
+        AESVariant fileVariant = encryptedPackage.getVariant();
+        AESVariant selectedVariant = request.getVariant();
+
+        if (selectedVariant != null && selectedVariant != fileVariant) {
+            throw new IllegalArgumentException("Selected algorithm does not match the encrypted file metadata.");
         }
 
-        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
-        if (keyBytes.length != AESConstants.KEY_SIZE) {
-            throw new InvalidKeyException("Secret key must be exactly 16 bytes in UTF-8 for AES-128.");
-        }
-
-        return keyBytes;
+        return fileVariant;
     }
 
     private Path resolveOutputPath(DecryptionRequest request, String originalFileName) throws InvalidFormatException {

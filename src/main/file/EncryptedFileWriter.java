@@ -1,5 +1,7 @@
 package file;
 
+import crypto.AESConstants;
+import crypto.AESVariant;
 import model.EncryptedPackage;
 
 import java.io.BufferedOutputStream;
@@ -18,10 +20,11 @@ public class EncryptedFileWriter {
         byte[] fileNameBytes = encryptedPackage.getOriginalFileName().getBytes(StandardCharsets.UTF_8);
         byte[] iv = encryptedPackage.getIv();
         byte[] cipherText = encryptedPackage.getCipherText();
+        AESVariant variant = encryptedPackage.getVariant();
 
-        validateSerializedFields(fileNameBytes, iv, cipherText, encryptedPackage.getVersion());
+        validateSerializedFields(fileNameBytes, iv, cipherText, variant, encryptedPackage.getVersion());
 
-        byte[] fileContent = serialize(fileNameBytes, iv, cipherText, encryptedPackage.getVersion());
+        byte[] fileContent = serialize(fileNameBytes, iv, cipherText, variant, encryptedPackage.getVersion());
 
         Path parent = outputPath.getParent();
         if (parent != null) {
@@ -55,11 +58,21 @@ public class EncryptedFileWriter {
         if (encryptedPackage.getCipherText() == null) {
             throw new IllegalArgumentException("Ciphertext must not be null.");
         }
+
+        if (encryptedPackage.getVariant() == null) {
+            throw new IllegalArgumentException("AES variant must not be null.");
+        }
     }
 
-    private void validateSerializedFields(byte[] fileNameBytes, byte[] iv, byte[] cipherText, byte version) {
+    private void validateSerializedFields(byte[] fileNameBytes, byte[] iv, byte[] cipherText, AESVariant variant, byte version) {
         if (!EncryptedFileFormat.isSupportedVersion(version)) {
             throw new IllegalArgumentException("Unsupported encrypted file version: " + version);
+        }
+
+        if (EncryptedFileFormat.usesVariantMetadata(version)) {
+            EncryptedFileFormat.variantCode(variant);
+        } else if (variant != AESConstants.DEFAULT_VARIANT) {
+            throw new IllegalArgumentException("Version 1 .enc files only support AES-128.");
         }
 
         if (fileNameBytes.length > 0xFFFF) {
@@ -75,12 +88,15 @@ public class EncryptedFileWriter {
         }
     }
 
-    private byte[] serialize(byte[] fileNameBytes, byte[] iv, byte[] cipherText, byte version)
+    private byte[] serialize(byte[] fileNameBytes, byte[] iv, byte[] cipherText, AESVariant variant, byte version)
             throws IOException {
         try (ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
              DataOutputStream dataStream = new DataOutputStream(byteStream)) {
             dataStream.write(EncryptedFileFormat.magicHeaderBytes());
             dataStream.writeByte(version & 0xFF);
+            if (EncryptedFileFormat.usesVariantMetadata(version)) {
+                dataStream.writeByte(EncryptedFileFormat.variantCode(variant) & 0xFF);
+            }
             dataStream.writeShort(fileNameBytes.length);
             dataStream.write(fileNameBytes);
             dataStream.write(iv);

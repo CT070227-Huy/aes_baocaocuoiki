@@ -1,5 +1,6 @@
 package controller;
 
+import crypto.AESVariant;
 import exception.InvalidKeyException;
 import file.FileDecryptService;
 import model.DecryptionRequest;
@@ -67,15 +68,16 @@ public class ReceiverController {
             throw new IllegalArgumentException("Please select a valid .enc file.");
         }
 
+        AESVariant variant = view.getSelectedVariant();
         String secretKey = view.getSecretKey();
-        ValidationUtils.validateAesKeyString(secretKey);
+        ValidationUtils.validateAesKeyHex(secretKey, variant);
 
         Path outputFile = view.getOutputFile();
         if (outputFile != null && outputFile.equals(encryptedFile)) {
             throw new IllegalArgumentException("Output file must be different from the encrypted input file.");
         }
 
-        return new DecryptionRequest(encryptedFile, outputFile, secretKey);
+        return new DecryptionRequest(encryptedFile, outputFile, secretKey, variant);
     }
 
     private void updateView(OperationResult result) {
@@ -121,6 +123,8 @@ public class ReceiverController {
         Path getOutputFile();
 
         String getSecretKey();
+
+        AESVariant getSelectedVariant();
 
         void setSelectedEncryptedFile(Path encryptedFile);
 
