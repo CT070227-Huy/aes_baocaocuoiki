@@ -2,7 +2,14 @@ package ui;
 
 import controller.SenderController;
 import crypto.AESVariant;
-
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.nio.file.Path;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -17,28 +24,26 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.nio.file.Path;
 
 public class SenderFrame extends JFrame implements SenderController.SenderView {
     private static final String[] ALGORITHM_OPTIONS = {"AES-128-CBC", "AES-192-CBC", "AES-256-CBC"};
 
     private final JTextField inputFileField = new JTextField();
+    private final JTextField encryptedFileField = new JTextField();
+    private final JTextField hostField = new JTextField("localhost");
+    private final JTextField portField = new JTextField("8000");
     private final JPasswordField secretKeyField = new JPasswordField();
     private final JComboBox<String> algorithmCombo = new JComboBox<>(ALGORITHM_OPTIONS);
     private final JLabel keyHintLabel = new JLabel();
     private final JTextArea statusArea = new JTextArea();
     private final JButton browseButton = new JButton("Duyệt");
+    private final JButton browseEncryptedButton = new JButton("Duyệt .enc");
     private final JButton encryptButton = new JButton("Mã hóa");
+    private final JButton sendButton = new JButton("Gửi qua mạng");
 
     private final SenderController controller;
     private Path selectedInputFile;
+    private Path selectedEncryptedFile;
 
     public SenderFrame() {
         controller = new SenderController(this);
@@ -48,8 +53,8 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
 
     private void initializeFrame() {
         setTitle("Mã hóa tệp");
-        setSize(640, 420);
-        setMinimumSize(new Dimension(640, 420));
+        setSize(700, 600);
+        setMinimumSize(new Dimension(700, 600));
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         setLocationByPlatform(true);
         setContentPane(buildContentPanel());
@@ -109,6 +114,12 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
         inputFileField.setBackground(Color.WHITE);
         inputFileField.setPreferredSize(new Dimension(0, 34));
 
+        encryptedFileField.setEditable(false);
+        encryptedFileField.setBackground(Color.WHITE);
+        encryptedFileField.setPreferredSize(new Dimension(0, 34));
+
+        hostField.setPreferredSize(new Dimension(0, 34));
+        portField.setPreferredSize(new Dimension(0, 34));
         secretKeyField.setPreferredSize(new Dimension(0, 34));
         algorithmCombo.setPreferredSize(new Dimension(0, 34));
         keyHintLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
@@ -175,6 +186,49 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
         encryptButton.setPreferredSize(new Dimension(140, 40));
         formPanel.add(encryptButton, constraints);
 
+        constraints.gridy = 5;
+        constraints.gridx = 0;
+        constraints.gridwidth = 1;
+        constraints.weightx = 0;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets(12, 6, 0, 6);
+        formPanel.add(new JLabel("Tệp .enc gửi"), constraints);
+
+        constraints.gridx = 1;
+        constraints.weightx = 1;
+        formPanel.add(encryptedFileField, constraints);
+
+        constraints.gridx = 2;
+        constraints.weightx = 0;
+        browseEncryptedButton.setPreferredSize(new Dimension(110, 34));
+        formPanel.add(browseEncryptedButton, constraints);
+
+        constraints.gridy = 6;
+        constraints.gridx = 0;
+        constraints.weightx = 0;
+        formPanel.add(new JLabel("Máy nhận"), constraints);
+
+        constraints.gridx = 1;
+        constraints.gridwidth = 2;
+        constraints.weightx = 1;
+        formPanel.add(hostField, constraints);
+
+        constraints.gridy = 7;
+        constraints.gridx = 0;
+        constraints.weightx = 0;
+        constraints.gridwidth = 1;
+        formPanel.add(new JLabel("Cổng"), constraints);
+
+        constraints.gridx = 1;
+        constraints.weightx = 1;
+        formPanel.add(portField, constraints);
+
+        constraints.gridx = 2;
+        constraints.weightx = 0;
+        sendButton.setPreferredSize(new Dimension(140, 40));
+        formPanel.add(sendButton, constraints);
+
         return formPanel;
     }
 
@@ -202,7 +256,9 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
 
     private void initializeActions() {
         browseButton.addActionListener(event -> controller.handleChooseFile(this));
+        browseEncryptedButton.addActionListener(event -> controller.handleChooseEncryptedFile(this));
         encryptButton.addActionListener(event -> controller.handleEncrypt());
+        sendButton.addActionListener(event -> controller.handleSendEncryptedFile());
         algorithmCombo.addActionListener(event -> updateKeyHint());
     }
 
@@ -230,6 +286,31 @@ public class SenderFrame extends JFrame implements SenderController.SenderView {
     public void setSelectedInputFile(Path inputFile) {
         selectedInputFile = inputFile;
         inputFileField.setText(inputFile == null ? "" : inputFile.toString());
+    }
+
+    @Override
+    public Path getSelectedEncryptedFile() {
+        return selectedEncryptedFile;
+    }
+
+    @Override
+    public String getTargetHost() {
+        return hostField.getText();
+    }
+
+    @Override
+    public int getTargetPort() {
+        try {
+            return Integer.parseInt(portField.getText().trim());
+        } catch (NumberFormatException exception) {
+            return -1;
+        }
+    }
+
+    @Override
+    public void setSelectedEncryptedFile(Path encryptedFile) {
+        selectedEncryptedFile = encryptedFile;
+        encryptedFileField.setText(encryptedFile == null ? "" : encryptedFile.toString());
     }
 
     @Override

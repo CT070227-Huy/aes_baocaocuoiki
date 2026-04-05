@@ -2,7 +2,14 @@ package ui;
 
 import controller.ReceiverController;
 import crypto.AESVariant;
-
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.nio.file.Path;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -17,28 +24,25 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.nio.file.Path;
 
 public class ReceiverFrame extends JFrame implements ReceiverController.ReceiverView {
     private static final String[] ALGORITHM_OPTIONS = {"AES-128-CBC", "AES-192-CBC", "AES-256-CBC"};
 
     private final JTextField encryptedFileField = new JTextField();
+    private final JTextField receiveDirectoryField = new JTextField();
+    private final JTextField listenPortField = new JTextField("8000");
     private final JPasswordField secretKeyField = new JPasswordField();
     private final JComboBox<String> algorithmCombo = new JComboBox<>(ALGORITHM_OPTIONS);
     private final JLabel keyHintLabel = new JLabel();
     private final JTextArea statusArea = new JTextArea();
     private final JButton browseButton = new JButton("Duyệt");
+    private final JButton browseReceiveDirectoryButton = new JButton("Chọn thư mục");
     private final JButton decryptButton = new JButton("Giải mã");
+    private final JButton receiveButton = new JButton("Nhận tệp");
 
     private final ReceiverController controller;
     private Path selectedEncryptedFile;
+    private Path selectedReceiveDirectory;
 
     public ReceiverFrame() {
         controller = new ReceiverController(this);
@@ -48,8 +52,8 @@ public class ReceiverFrame extends JFrame implements ReceiverController.Receiver
 
     private void initializeFrame() {
         setTitle("Giải mã tệp");
-        setSize(640, 420);
-        setMinimumSize(new Dimension(640, 420));
+        setSize(700, 600);
+        setMinimumSize(new Dimension(700, 600));
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         setLocationByPlatform(true);
         setContentPane(buildContentPanel());
@@ -109,8 +113,13 @@ public class ReceiverFrame extends JFrame implements ReceiverController.Receiver
         encryptedFileField.setBackground(Color.WHITE);
         encryptedFileField.setPreferredSize(new Dimension(0, 34));
 
+        receiveDirectoryField.setEditable(false);
+        receiveDirectoryField.setBackground(Color.WHITE);
+        receiveDirectoryField.setPreferredSize(new Dimension(0, 34));
+
         secretKeyField.setPreferredSize(new Dimension(0, 34));
         algorithmCombo.setPreferredSize(new Dimension(0, 34));
+        listenPortField.setPreferredSize(new Dimension(0, 34));
         keyHintLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
         keyHintLabel.setForeground(new Color(85, 85, 85));
         updateKeyHint();
@@ -175,6 +184,44 @@ public class ReceiverFrame extends JFrame implements ReceiverController.Receiver
         decryptButton.setPreferredSize(new Dimension(140, 40));
         formPanel.add(decryptButton, constraints);
 
+        receiveDirectoryField.setEditable(false);
+        receiveDirectoryField.setBackground(Color.WHITE);
+        receiveDirectoryField.setPreferredSize(new Dimension(0, 34));
+        listenPortField.setPreferredSize(new Dimension(0, 34));
+        listenPortField.setText("8000");
+
+        constraints.gridy = 5;
+        constraints.gridx = 0;
+        constraints.gridwidth = 1;
+        constraints.weightx = 0;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets(12, 6, 0, 6);
+        formPanel.add(new JLabel("Thư mục nhận"), constraints);
+
+        constraints.gridx = 1;
+        constraints.weightx = 1;
+        formPanel.add(receiveDirectoryField, constraints);
+
+        constraints.gridx = 2;
+        constraints.weightx = 0;
+        browseReceiveDirectoryButton.setPreferredSize(new Dimension(110, 34));
+        formPanel.add(browseReceiveDirectoryButton, constraints);
+
+        constraints.gridy = 6;
+        constraints.gridx = 0;
+        constraints.weightx = 0;
+        formPanel.add(new JLabel("Cổng nghe"), constraints);
+
+        constraints.gridx = 1;
+        constraints.weightx = 1;
+        formPanel.add(listenPortField, constraints);
+
+        constraints.gridx = 2;
+        constraints.weightx = 0;
+        receiveButton.setPreferredSize(new Dimension(140, 40));
+        formPanel.add(receiveButton, constraints);
+
         return formPanel;
     }
 
@@ -202,7 +249,9 @@ public class ReceiverFrame extends JFrame implements ReceiverController.Receiver
 
     private void initializeActions() {
         browseButton.addActionListener(event -> controller.handleChooseFile(this));
+        browseReceiveDirectoryButton.addActionListener(event -> controller.handleChooseReceiveDirectory(this));
         decryptButton.addActionListener(event -> controller.handleDecrypt());
+        receiveButton.addActionListener(event -> controller.handleStartReceive());
         algorithmCombo.addActionListener(event -> updateKeyHint());
     }
 
@@ -230,6 +279,22 @@ public class ReceiverFrame extends JFrame implements ReceiverController.Receiver
     public void setSelectedEncryptedFile(Path encryptedFile) {
         selectedEncryptedFile = encryptedFile;
         encryptedFileField.setText(encryptedFile == null ? "" : encryptedFile.toString());
+    }
+
+    @Override
+    public Path getSelectedReceiveDirectory() {
+        return selectedReceiveDirectory;
+    }
+
+    @Override
+    public String getListenPort() {
+        return listenPortField.getText();
+    }
+
+    @Override
+    public void setSelectedReceiveDirectory(Path receiveDirectory) {
+        selectedReceiveDirectory = receiveDirectory;
+        receiveDirectoryField.setText(receiveDirectory == null ? "" : receiveDirectory.toString());
     }
 
     @Override

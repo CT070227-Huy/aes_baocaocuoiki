@@ -3,24 +3,26 @@ package controller;
 import crypto.AESVariant;
 import exception.InvalidKeyException;
 import file.FileDecryptService;
-import model.DecryptionRequest;
-import model.OperationResult;
-import util.ValidationUtils;
-
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.Component;
 import java.nio.file.Path;
+import javax.swing.JFileChooser;
+import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import model.DecryptionRequest;
+import model.OperationResult;
+import network.FileTransferServer;
+import util.ValidationUtils;
 
 public class ReceiverController {
     private final ReceiverView view;
     private final FileDecryptService fileDecryptService;
+    private final FileTransferServer fileTransferServer;
 
     public ReceiverController(ReceiverView view) {
-        this(view, new FileDecryptService());
+        this(view, new FileDecryptService(), new FileTransferServer());
     }
 
-    public ReceiverController(ReceiverView view, FileDecryptService fileDecryptService) {
+    public ReceiverController(ReceiverView view, FileDecryptService fileDecryptService, FileTransferServer fileTransferServer) {
         if (view == null) {
             throw new IllegalArgumentException("Giao diện nhận không được để trống.");
         }
@@ -29,8 +31,13 @@ public class ReceiverController {
             throw new IllegalArgumentException("Dịch vụ giải mã tệp không được để trống.");
         }
 
+        if (fileTransferServer == null) {
+            throw new IllegalArgumentException("Dịch vụ nhận tệp không được để trống.");
+        }
+
         this.view = view;
         this.fileDecryptService = fileDecryptService;
+        this.fileTransferServer = fileTransferServer;
     }
 
     public void handleChooseFile(Component parentComponent) {
@@ -46,6 +53,54 @@ public class ReceiverController {
         Path selectedFile = fileChooser.getSelectedFile().toPath().toAbsolutePath().normalize();
         view.setSelectedEncryptedFile(selectedFile);
         view.showStatus("Đã chọn tệp mã hóa: " + selectedFile.getFileName());
+    }
+
+    public void handleChooseReceiveDirectory(Component parentComponent) {
+        JFileChooser directoryChooser = new JFileChooser();
+        directoryChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+        int selectionResult = directoryChooser.showOpenDialog(parentComponent);
+        if (selectionResult != JFileChooser.APPROVE_OPTION || directoryChooser.getSelectedFile() == null) {
+            return;
+        }
+
+        Path selectedDirectory = directoryChooser.getSelectedFile().toPath().toAbsolutePath().normalize();
+        view.setSelectedReceiveDirectory(selectedDirectory);
+        view.showStatus("Đã chọn thư mục nhận: " + selectedDirectory);
+    }
+
+    public void handleStartReceive() {
+        try {
+            Path receiveDirectory = view.getSelectedReceiveDirectory();
+            if (receiveDirectory == null) {
+                throw new IllegalArgumentException("Vui lòng chọn thư mục nhận trước khi bắt đầu.");
+            }
+
+            int port = parsePort(view.getListenPort());
+            if (port <= 0) {
+                throw new IllegalArgumentException("Cổng phải là một số hợp lệ từ 1 đến 65535.");
+            }
+
+            view.showStatus("Đang chờ kết nối trên cổng " + port + "...");
+            new Thread(() -> {
+                OperationResult result = fileTransferServer.listenForSingleFile(port, receiveDirectory);
+                SwingUtilities.invokeLater(() -> updateView(result));
+            }, "receive-file-thread").start();
+        } catch (IllegalArgumentException exception) {
+            showValidationError(exception.getMessage());
+        }
+    }
+
+    private int parsePort(String value) {
+        if (value == null || value.isBlank()) {
+            return -1;
+        }
+
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException exception) {
+            return -1;
+        }
     }
 
     public void handleDecrypt() {
@@ -126,7 +181,13 @@ public class ReceiverController {
 
         AESVariant getSelectedVariant();
 
+        Path getSelectedReceiveDirectory();
+
+        String getListenPort();
+
         void setSelectedEncryptedFile(Path encryptedFile);
+
+        void setSelectedReceiveDirectory(Path receiveDirectory);
 
         void showStatus(String message);
 
